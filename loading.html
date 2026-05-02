@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loading Screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: manipulation;
+        }
+
+        #video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #video-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.4) saturate(1.2);
+            transform: scale(1.1);
+            animation: slowZoom 20s infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .main-loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .loading-title {
+            color: #fff;
+            font-size: clamp(24px, 8vw, 36px);
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,0.3), #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+
+        .sub-description {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .push-alert {
+            position: fixed;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 360px;
+            background: rgba(25, 25, 25, 0.6);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            padding: 20px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            z-index: 100;
+            transition: all 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        .push-alert.active {
+            top: 30px;
+        }
+
+        .alert-visual {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(0, 122, 255, 0.2);
+            border-top: 3px solid #007AFF;
+            border-radius: 50%;
+            animation: miniSpin 1s linear infinite;
+        }
+
+        @keyframes miniSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert-info h4 {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .alert-info p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            opacity: 0;
+            filter: blur(20px);
+            transform: translate(-50%, -50%) scale(0.8);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-container">
+        <video autoplay muted loop playsinline id="video-bg">
+            <source src="https://files.catbox.moe/f6dlz9.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="main-loader" id="loader">
+        <h1 class="loading-title"></h1>
+        <p class="sub-description"></p>
+    </div>
+
+    <div class="push-alert" id="alertBox">
+        <div class="alert-visual">
+            <div class="alert-circle"></div>
+        </div>
+        <div class="alert-info">
+            <h4>Berhasil</h4>
+            <p>Mengalihkan Secara Otomatis...</p>
+        </div>
+    </div>
+
+    <script>
+        const loader = document.getElementById('loader');
+        const alertBox = document.getElementById('alertBox');
+        const targetUrl = "https://homepage-nevers.vercel.app/";
+
+        window.addEventListener('load', () => {
+            const video = document.getElementById('video-bg');
+            video.play().catch(() => {});
+
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                
+                setTimeout(() => {
+                    alertBox.classList.add('active');
+                    
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 2800); 
+                    
+                }, 700);
+            }, 4500);
+        });
+
+        document.addEventListener('touchstart', function (event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
